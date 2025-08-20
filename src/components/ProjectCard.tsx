@@ -1,141 +1,144 @@
 import React from 'react';
 import { 
-  Calendar, 
   GitBranch, 
-  ExternalLink, 
-  MoreHorizontal,
-  Flag,
-  Flame,
-  Clock,
-  CheckCircle,
-  AlertCircle,
-  PlayCircle
+  ExternalLink,
+  Code2,
+  Globe,
+  Server,
+  Smartphone,
+  Edit,
+  Trash2
 } from 'lucide-react';
 import { Project } from '../data/projects';
 
 interface ProjectCardProps {
   project: Project;
+  onEdit?: (project: Project) => void;
+  onDelete?: (id: string) => void;
 }
 
-const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
+const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete }) => {
+  const getProjectIcon = (category: string) => {
+    switch (category) {
+      case 'Web App':
+        return <Globe className="w-8 h-8 text-blue-400" />;
+      case 'Landing Page':
+        return <Smartphone className="w-8 h-8 text-green-400" />;
+      case 'Platform':
+        return <Server className="w-8 h-8 text-purple-400" />;
+      case 'Tool':
+        return <Code2 className="w-8 h-8 text-orange-400" />;
+      default:
+        return <Code2 className="w-8 h-8 text-gray-400" />;
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Planning':
-        return 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300';
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
       case 'In Development':
-        return 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300';
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
       case 'Testing':
-        return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300';
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
       case 'Deployed':
-        return 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300';
+        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
       case 'Maintenance':
-        return 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300';
+        return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
       default:
-        return 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300';
-    }
-  };
-
-  const getPriorityIcon = (priority: string) => {
-    switch (priority) {
-      case 'High':
-        return <Flag className="h-4 w-4 text-red-500" />;
-      case 'Medium':
-        return <Flame className="h-4 w-4 text-orange-500" />;
-      default:
-        return <Clock className="h-4 w-4 text-gray-400" />;
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'Planning':
-        return <AlertCircle className="h-4 w-4" />;
-      case 'In Development':
-        return <PlayCircle className="h-4 w-4" />;
-      case 'Testing':
-        return <Clock className="h-4 w-4" />;
-      case 'Deployed':
-        return <CheckCircle className="h-4 w-4" />;
-      case 'Maintenance':
-        return <GitBranch className="h-4 w-4" />;
-      default:
-        return <AlertCircle className="h-4 w-4" />;
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
     }
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow duration-200">
-      {/* Header */}
+    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-6 hover:border-gray-300 dark:hover:border-gray-600 transition-colors duration-200 group">
+      {/* Header with Icon, Title and Status Badge */}
       <div className="flex items-start justify-between mb-4">
-        <div className="flex-1">
-          <div className="flex items-center space-x-3 mb-2">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{project.name}</h3>
-            <span className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(project.status)}`}>
-              {getStatusIcon(project.status)}
-              <span className="ml-1">{project.status}</span>
-            </span>
+        <div className="flex items-start space-x-4 flex-1 min-w-0">
+          <div className="flex-shrink-0">
+            {getProjectIcon(project.category)}
           </div>
-          <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{project.description}</p>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                  {project.name}
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                  {project.description}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
-        <button className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300">
-          <MoreHorizontal className="h-5 w-5" />
-        </button>
+        
+        {/* Status Badge */}
+        <span className={`px-2 py-1 text-xs font-medium rounded-full flex-shrink-0 ${getStatusColor(project.status)}`}>
+          {project.status}
+        </span>
       </div>
 
-      {/* Progress Bar */}
-      <div className="mb-4">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Progress</span>
-          <span className="text-sm text-gray-600 dark:text-gray-400">{project.progress}%</span>
-        </div>
-        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-          <div 
-            className="bg-blue-600 dark:bg-blue-500 h-2 rounded-full transition-all duration-300"
-            style={{ width: `${project.progress}%` }}
-          ></div>
-        </div>
+      {/* Technologies Tags */}
+      <div className="flex flex-wrap gap-1.5 mb-4">
+        {project.technologies.slice(0, 3).map((tech, index) => (
+          <span 
+            key={index}
+            className="inline-block px-2 py-1 text-xs text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md"
+          >
+            {tech}
+          </span>
+        ))}
+        {project.technologies.length > 3 && (
+          <span className="inline-block px-2 py-1 text-xs text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md">
+            +{project.technologies.length - 3}
+          </span>
+        )}
       </div>
 
-      {/* Technologies */}
-      <div className="mb-4">
-        <div className="flex flex-wrap gap-2">
-          {project.technologies.slice(0, 4).map((tech, index) => (
-            <span 
-              key={index}
-              className="inline-flex items-center px-2 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 rounded-md"
-            >
-              {tech}
-            </span>
-          ))}
-          {project.technologies.length > 4 && (
-            <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-md">
-              +{project.technologies.length - 4} more
-            </span>
-          )}
-        </div>
-      </div>
-
-      {/* Footer */}
+      {/* Footer with Links and Action Buttons */}
       <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-1">
-            {getPriorityIcon(project.priority)}
-            <span className="text-sm text-gray-600 dark:text-gray-400">{project.priority}</span>
-          </div>
-          <div className="flex items-center space-x-1">
-            <Calendar className="h-4 w-4 text-gray-400 dark:text-gray-500" />
-            <span className="text-sm text-gray-600 dark:text-gray-400">{project.dueDate}</span>
-          </div>
-        </div>
-        <div className="flex items-center space-x-2">
+        {/* Links */}
+        <div className="flex items-center space-x-3">
           {project.repository && (
-            <button className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300">
+            <button 
+              onClick={() => window.open(project.repository, '_blank')}
+              className="flex items-center space-x-1 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors text-sm"
+              title="View Repository"
+            >
               <GitBranch className="h-4 w-4" />
+              <span>Repository</span>
             </button>
           )}
           {project.deployUrl && (
-            <button className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300">
+            <button 
+              onClick={() => window.open(project.deployUrl, '_blank')}
+              className="flex items-center space-x-1 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors text-sm"
+              title="View Live Site"
+            >
               <ExternalLink className="h-4 w-4" />
+              <span>Deploy</span>
+            </button>
+          )}
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex items-center space-x-2">
+          {onEdit && (
+            <button
+              onClick={() => onEdit(project)}
+              className="p-2 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+              title="Edit Project"
+            >
+              <Edit className="h-4 w-4" />
+            </button>
+          )}
+          {onDelete && (
+            <button
+              onClick={() => onDelete(project.id)}
+              className="p-2 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+              title="Delete Project"
+            >
+              <Trash2 className="h-4 w-4" />
             </button>
           )}
         </div>

@@ -1,13 +1,8 @@
 import React from 'react';
 import { 
-  LayoutDashboard, 
   CheckSquare, 
-  Target, 
   FileText, 
-  Calendar, 
-  Zap, 
   Settings,
-  ChevronRight,
   Plus
 } from 'lucide-react';
 import { useNavigation } from '../contexts/NavigationContext';
@@ -16,12 +11,8 @@ const Sidebar = () => {
   const { activeSection, setActiveSection } = useNavigation();
 
   const navigationItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', id: 'dashboard' as const },
     { icon: CheckSquare, label: 'Projects', id: 'projects' as const },
-    { icon: Target, label: 'Goals', id: 'goals' as const },
     { icon: FileText, label: 'Tasks', id: 'tasks' as const },
-    { icon: Calendar, label: 'Calendar', id: 'calendar' as const },
-    { icon: Zap, label: 'Automations', id: 'automations' as const },
     { icon: Settings, label: 'Settings', id: 'settings' as const },
   ];
 

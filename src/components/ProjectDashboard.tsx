@@ -245,23 +245,12 @@ const ProjectDashboard = () => {
                 : 'space-y-4'
             }>
               {filteredProjects.map((project) => (
-                <div key={project.id} className="relative group">
-                  <ProjectCard project={project} />
-                  <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-2">
-                    <button
-                      onClick={() => handleEditProject(project)}
-                      className="p-2 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                    >
-                      <Edit className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteProject(project.id)}
-                      className="p-2 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                    >
-                      <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
-                    </button>
-                  </div>
-                </div>
+                <ProjectCard 
+                  key={project.id} 
+                  project={project} 
+                  onEdit={handleEditProject}
+                  onDelete={handleDeleteProject}
+                />
               ))}
             </div>
           )}

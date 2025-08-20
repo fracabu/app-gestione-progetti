@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState } from 'react';
 
-type NavigationSection = 'dashboard' | 'projects' | 'tasks' | 'goals' | 'docs' | 'calendar' | 'automations' | 'settings';
+type NavigationSection = 'projects' | 'tasks' | 'settings';
 
 interface NavigationContextType {
   activeSection: NavigationSection;

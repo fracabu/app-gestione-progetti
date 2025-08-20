@@ -29,7 +29,7 @@ export const projects: Project[] = [
   {
     id: 'il-sorpasso',
     name: 'Il Sorpasso',
-    description: 'Landing page già deployata su Vercel con Firebase. Necessita ottimizzazione SEO completa prima del trasferimento su dominio Hostinger.',
+    description: 'Landing page deployata su Vercel con Firebase. Ottimizzazione SEO in corso.',
     status: 'Testing',
     priority: 'High',
     progress: 75,
@@ -79,7 +79,7 @@ export const projects: Project[] = [
   {
     id: 'devjobmatcher',
     name: 'DevJobMatcher',
-    description: 'Piattaforma intelligente di job matching che connette sviluppatori e aziende attraverso algoritmi di matching avanzati e AI.',
+    description: 'Piattaforma AI per matching sviluppatori-aziende con algoritmi intelligenti.',
     status: 'Planning',
     priority: 'High',
     progress: 15,
@@ -138,7 +138,7 @@ export const projects: Project[] = [
   {
     id: 'linkythub',
     name: 'LinkyThub',
-    description: 'Piattaforma avanzata di link management con analytics intelligenti, tracking dettagliato e sistema di branding personalizzato.',
+    description: 'Piattaforma di link management con analytics avanzata e branding personalizzato.',
     status: 'Planning',
     priority: 'Medium',
     progress: 10,
@@ -197,7 +197,7 @@ export const projects: Project[] = [
   {
     id: 'ospitly',
     name: 'Ospitly',
-    description: 'Piattaforma di gestione ospitalità e prenotazioni. Deploy completato da Vercel ad Aruba, necessita configurazione DNS MX per email.',
+    description: 'Piattaforma gestione ospitalità deployata su Aruba. Setup email in corso.',
     status: 'Deployed',
     priority: 'Medium',
     progress: 90,
