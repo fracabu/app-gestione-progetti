@@ -65,16 +65,16 @@ const ProjectStats: React.FC<ProjectStatsProps> = ({ projects }) => {
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 md:gap-4">
       {stats.map((stat, index) => (
-        <div key={index} className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+        <div key={index} className="bg-white dark:bg-gray-800 rounded-lg p-3 md:p-4 border border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{stat.title}</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{stat.value}</p>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs md:text-sm font-medium text-gray-600 dark:text-gray-400 truncate">{stat.title}</p>
+              <p className="text-lg md:text-2xl font-bold text-gray-900 dark:text-white mt-1">{stat.value}</p>
             </div>
-            <div className={`p-3 rounded-lg ${stat.bgColor}`}>
-              <stat.icon className={`h-6 w-6 ${stat.color}`} />
+            <div className={`p-2 md:p-3 rounded-lg ${stat.bgColor} flex-shrink-0 ml-2`}>
+              <stat.icon className={`h-4 w-4 md:h-6 md:w-6 ${stat.color}`} />
             </div>
           </div>
         </div>
