@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { 
-  Plus, 
-  Search, 
+import {
+  Plus,
+  Search,
   Filter,
   Calendar,
   User,
@@ -9,41 +9,124 @@ import {
   Clock,
   CheckCircle,
   AlertCircle,
-  PlayCircle
+  PlayCircle,
+  Edit,
+  AlertTriangle,
+  Timer
 } from 'lucide-react';
 import { useProjects } from '../hooks/useProjects';
+import { useNavigation } from '../contexts/NavigationContext';
 import { Task, Project } from '../data/projects';
 
 const Tasks = () => {
   const { projects } = useProjects();
+  const { setActiveSection, setEditingProjectId, viewMode } = useNavigation();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterPriority, setFilterPriority] = useState<string>('all');
 
   // Estrai tutti i task da tutti i progetti con informazioni aggiuntive
-  const allTasks: (Task & { 
-    projectName: string; 
-    projectId: string; 
+  // ESCLUDI automaticamente i task completati dalla vista Tasks
+  const allTasks: (Task & {
+    projectName: string;
+    projectId: string;
     projectStatus: string;
     projectCategory: string;
-  })[] = projects.flatMap(project => 
-    (project.tasks || []).map(task => ({
-      ...task,
-      projectName: project.name,
-      projectId: project.id,
-      projectStatus: project.status,
-      projectCategory: project.category
-    }))
+  })[] = projects.flatMap(project =>
+    (project.tasks || [])
+      .filter(task => task.status !== 'Done') // Nasconde i task completati
+      .map(task => ({
+        ...task,
+        projectName: project.name,
+        projectId: project.id,
+        projectStatus: project.status,
+        projectCategory: project.category
+      }))
   );
 
-  const filteredTasks = allTasks.filter(task => {
-    const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         task.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         task.projectName.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filterStatus === 'all' || task.status === filterStatus;
-    const matchesPriority = filterPriority === 'all' || task.priority === filterPriority;
-    return matchesSearch && matchesStatus && matchesPriority;
-  });
+  // Calculate urgency based on due date
+  const getTaskUrgency = (dueDate: string) => {
+    if (!dueDate) return 'none';
+
+    const today = new Date();
+    const due = new Date(dueDate);
+    const diffTime = due.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 0) return 'overdue'; // Scaduto
+    if (diffDays === 0) return 'today'; // Oggi
+    if (diffDays <= 3) return 'urgent'; // Prossimi 3 giorni
+    if (diffDays <= 7) return 'warning'; // Prossimi 7 giorni
+    return 'normal'; // Oltre 7 giorni
+  };
+
+  const getUrgencyColor = (urgency: string) => {
+    switch (urgency) {
+      case 'overdue':
+        return 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 border-red-200 dark:border-red-800';
+      case 'today':
+        return 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-100 dark:border-red-800';
+      case 'urgent':
+        return 'bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300 border-orange-200 dark:border-orange-800';
+      case 'warning':
+        return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 border-yellow-200 dark:border-yellow-800';
+      default:
+        return 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700';
+    }
+  };
+
+  const getUrgencyIcon = (urgency: string) => {
+    switch (urgency) {
+      case 'overdue':
+        return <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" />;
+      case 'today':
+        return <Timer className="h-4 w-4 text-red-500 dark:text-red-400" />;
+      case 'urgent':
+        return <Clock className="h-4 w-4 text-orange-600 dark:text-orange-400" />;
+      case 'warning':
+        return <Clock className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />;
+      default:
+        return null;
+    }
+  };
+
+  const getUrgencyLabel = (urgency: string) => {
+    switch (urgency) {
+      case 'overdue': return 'Scaduto';
+      case 'today': return 'Scade Oggi';
+      case 'urgent': return 'Urgente';
+      case 'warning': return 'Questa Settimana';
+      default: return '';
+    }
+  };
+
+  // Add urgency to tasks and sort by urgency
+  const tasksWithUrgency = allTasks.map(task => ({
+    ...task,
+    urgency: getTaskUrgency(task.dueDate)
+  }));
+
+  const filteredTasks = tasksWithUrgency
+    .filter(task => {
+      const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           task.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           task.projectName.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatus = filterStatus === 'all' || task.status === filterStatus;
+      const matchesPriority = filterPriority === 'all' || task.priority === filterPriority;
+      return matchesSearch && matchesStatus && matchesPriority;
+    })
+    .sort((a, b) => {
+      // Sort by urgency first, then by due date
+      const urgencyOrder = { overdue: 0, today: 1, urgent: 2, warning: 3, normal: 4, none: 5 };
+      const urgencyDiff = urgencyOrder[a.urgency as keyof typeof urgencyOrder] - urgencyOrder[b.urgency as keyof typeof urgencyOrder];
+      if (urgencyDiff !== 0) return urgencyDiff;
+
+      // If same urgency, sort by due date
+      if (a.dueDate && b.dueDate) {
+        return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+      }
+      return 0;
+    });
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -93,7 +176,11 @@ const Tasks = () => {
     todo: allTasks.filter(t => t.status === 'Todo').length,
     inProgress: allTasks.filter(t => t.status === 'In Progress').length,
     review: allTasks.filter(t => t.status === 'Review').length,
-    done: allTasks.filter(t => t.status === 'Done').length
+    done: allTasks.filter(t => t.status === 'Done').length,
+    overdue: tasksWithUrgency.filter(t => t.urgency === 'overdue').length,
+    today: tasksWithUrgency.filter(t => t.urgency === 'today').length,
+    urgent: tasksWithUrgency.filter(t => t.urgency === 'urgent').length,
+    warning: tasksWithUrgency.filter(t => t.urgency === 'warning').length
   };
 
   const getProjectStatusColor = (status: string) => {
@@ -113,119 +200,166 @@ const Tasks = () => {
     }
   };
 
+  const handleEditTask = (task: Task & { projectId: string }) => {
+    setEditingProjectId(task.projectId);
+    setActiveSection('project-editor');
+  };
+
   return (
     <div className="flex-1 flex flex-col min-h-0">
       {/* Header */}
-      <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
-        <div className="flex items-center justify-between">
+      <div className="px-4 md:px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Tasks</h1>
+            <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Task</h1>
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              Manage and track all your project tasks
+              Gestisci e monitora tutti i task dei tuoi progetti
             </p>
           </div>
-          <button className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 dark:bg-blue-500 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors">
+          <button className="flex items-center justify-center space-x-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 dark:bg-blue-500 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors w-full sm:w-auto">
             <Plus className="h-4 w-4" />
-            <span>New Task</span>
+            <span>Nuovo Task</span>
           </button>
         </div>
       </div>
 
       {/* Stats */}
-      <div className="px-6 py-4 flex-shrink-0">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total</p>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">{taskStats.total}</p>
+      <div className="px-4 md:px-6 py-4 flex-shrink-0">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-3">
+          {/* Status Stats */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+            <p className="text-xs font-medium text-gray-600 dark:text-gray-400">Totale</p>
+            <p className="text-xl font-bold text-gray-900 dark:text-white">{taskStats.total}</p>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Todo</p>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">{taskStats.todo}</p>
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+            <p className="text-xs font-medium text-gray-600 dark:text-gray-400">Da Fare</p>
+            <p className="text-xl font-bold text-gray-900 dark:text-white">{taskStats.todo}</p>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-            <p className="text-sm font-medium text-blue-600 dark:text-blue-400">In Progress</p>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">{taskStats.inProgress}</p>
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+            <p className="text-xs font-medium text-blue-600 dark:text-blue-400">In Corso</p>
+            <p className="text-xl font-bold text-gray-900 dark:text-white">{taskStats.inProgress}</p>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-            <p className="text-sm font-medium text-yellow-600 dark:text-yellow-400">Review</p>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">{taskStats.review}</p>
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+            <p className="text-xs font-medium text-yellow-600 dark:text-yellow-400">Revisione</p>
+            <p className="text-xl font-bold text-gray-900 dark:text-white">{taskStats.review}</p>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-            <p className="text-sm font-medium text-green-600 dark:text-green-400">Done</p>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">{taskStats.done}</p>
+
+          {/* Urgency Stats */}
+          <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-3 border border-red-200 dark:border-red-800">
+            <div className="flex items-center space-x-1">
+              <AlertTriangle className="h-3 w-3 text-red-600 dark:text-red-400" />
+              <p className="text-xs font-medium text-red-600 dark:text-red-400">Scaduti</p>
+            </div>
+            <p className="text-xl font-bold text-red-700 dark:text-red-300">{taskStats.overdue}</p>
+          </div>
+          <div className="bg-red-25 dark:bg-red-900/10 rounded-lg p-3 border border-red-100 dark:border-red-800">
+            <div className="flex items-center space-x-1">
+              <Timer className="h-3 w-3 text-red-500 dark:text-red-400" />
+              <p className="text-xs font-medium text-red-500 dark:text-red-400">Oggi</p>
+            </div>
+            <p className="text-xl font-bold text-red-600 dark:text-red-300">{taskStats.today}</p>
+          </div>
+          <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-3 border border-orange-200 dark:border-orange-800">
+            <div className="flex items-center space-x-1">
+              <Clock className="h-3 w-3 text-orange-600 dark:text-orange-400" />
+              <p className="text-xs font-medium text-orange-600 dark:text-orange-400">Urgenti</p>
+            </div>
+            <p className="text-xl font-bold text-orange-700 dark:text-orange-300">{taskStats.urgent}</p>
+          </div>
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-3 border border-yellow-200 dark:border-yellow-800">
+            <div className="flex items-center space-x-1">
+              <Clock className="h-3 w-3 text-yellow-600 dark:text-yellow-400" />
+              <p className="text-xs font-medium text-yellow-600 dark:text-yellow-400">Settimana</p>
+            </div>
+            <p className="text-xl font-bold text-yellow-700 dark:text-yellow-300">{taskStats.warning}</p>
           </div>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
-        <div className="flex items-center space-x-4">
-          <div className="relative">
+      <div className="px-4 md:px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
+          <div className="relative flex-1 sm:flex-initial">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
             <input
               type="text"
-              placeholder="Search tasks..."
+              placeholder="Cerca task..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 w-80 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+              className="pl-10 pr-4 py-2 w-full sm:w-64 lg:w-80 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
             />
           </div>
 
-          <select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-            className="px-3 py-2 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
-          >
-            <option value="all">All Status</option>
-            <option value="Todo">Todo</option>
-            <option value="In Progress">In Progress</option>
-            <option value="Review">Review</option>
-            <option value="Done">Done</option>
-          </select>
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className="px-3 py-2 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
+            >
+              <option value="all">Tutti gli Stati</option>
+              <option value="Todo">Da Fare</option>
+              <option value="In Progress">In Corso</option>
+              <option value="Review">In Revisione</option>
+            </select>
 
-          <select
-            value={filterPriority}
-            onChange={(e) => setFilterPriority(e.target.value)}
-            className="px-3 py-2 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
-          >
-            <option value="all">All Priority</option>
-            <option value="High">High</option>
-            <option value="Medium">Medium</option>
-            <option value="Low">Low</option>
-          </select>
+            <select
+              value={filterPriority}
+              onChange={(e) => setFilterPriority(e.target.value)}
+              className="px-3 py-2 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
+            >
+              <option value="all">Tutte le Priorità</option>
+              <option value="High">Alta</option>
+              <option value="Medium">Media</option>
+              <option value="Low">Bassa</option>
+            </select>
+          </div>
         </div>
       </div>
 
       {/* Tasks List */}
-      <div className="flex-1 overflow-y-auto p-6 min-h-0">
+      <div className="flex-1 overflow-y-auto p-4 md:p-6 min-h-0">
         {filteredTasks.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-gray-400 dark:text-gray-500 mb-4">
               <CheckCircle className="h-12 w-12 mx-auto" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No tasks found</h3>
-            <p className="text-gray-600 dark:text-gray-400">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Nessun task trovato</h3>
+            <p className="text-gray-600 dark:text-gray-400 px-4 text-center">
               {searchTerm || filterStatus !== 'all' || filterPriority !== 'all'
-                ? 'Try adjusting your search or filter criteria.'
-                : 'Tasks will appear here when you create projects with development steps.'
+                ? 'Prova a modificare i criteri di ricerca o filtro.'
+                : 'I task appariranno qui quando crei progetti con step di sviluppo.'
               }
             </p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className={
+            viewMode === 'grid'
+              ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'
+              : viewMode === 'calendar'
+              ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4'
+              : 'space-y-4'
+          }>
             {filteredTasks.map((task) => (
-              <div key={`${task.projectId}-${task.id}`} className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
+              <div key={`${task.projectId}-${task.id}`} className={`rounded-lg p-4 md:p-6 border hover:shadow-md transition-shadow ${getUrgencyColor(task.urgency)}`}>
+                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between mb-4 gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-3 mb-2 gap-2">
                       <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{task.title}</h3>
-                      <span className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(task.status)}`}>
-                        {getStatusIcon(task.status)}
-                        <span className="ml-1">{task.status}</span>
-                      </span>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(task.status)}`}>
+                          {getStatusIcon(task.status)}
+                          <span className="ml-1">{task.status}</span>
+                        </span>
+                        {task.urgency !== 'normal' && task.urgency !== 'none' && (
+                          <span className="inline-flex items-center px-2 py-1 text-xs font-medium rounded-md bg-opacity-80">
+                            {getUrgencyIcon(task.urgency)}
+                            <span className="ml-1 font-semibold">{getUrgencyLabel(task.urgency)}</span>
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{task.description}</p>
-                    <div className="flex items-center space-x-2">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">{task.description}</p>
+                    <div className="flex flex-wrap items-center gap-2">
                       <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 rounded-md">
                         {task.projectName}
                       </span>
@@ -237,31 +371,50 @@ const Tasks = () => {
                       </span>
                     </div>
                   </div>
+                  <button
+                    onClick={() => handleEditTask(task)}
+                    className="self-start lg:ml-4 p-2 text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                    title="Edit task"
+                  >
+                    <Edit className="h-4 w-4" />
+                  </button>
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div className="flex flex-wrap items-center gap-3 text-sm">
                     <div className="flex items-center space-x-1">
                       <Flag className={`h-4 w-4 ${getPriorityColor(task.priority)}`} />
-                      <span className="text-sm text-gray-600 dark:text-gray-400">{task.priority}</span>
+                      <span className="text-gray-600 dark:text-gray-400">{task.priority}</span>
                     </div>
                     {task.assignee && (
                       <div className="flex items-center space-x-1">
                         <User className="h-4 w-4 text-gray-400 dark:text-gray-500" />
-                        <span className="text-sm text-gray-600 dark:text-gray-400">{task.assignee}</span>
+                        <span className="text-gray-600 dark:text-gray-400">{task.assignee}</span>
                       </div>
                     )}
                     {task.dueDate && (
                       <div className="flex items-center space-x-1">
-                        <Calendar className="h-4 w-4 text-gray-400 dark:text-gray-500" />
-                        <span className="text-sm text-gray-600 dark:text-gray-400">{task.dueDate}</span>
+                        {getUrgencyIcon(task.urgency) || <Calendar className="h-4 w-4 text-gray-400 dark:text-gray-500" />}
+                        <span className={`text-sm ${
+                          task.urgency === 'overdue' || task.urgency === 'today'
+                            ? 'text-red-600 dark:text-red-400 font-medium'
+                            : task.urgency === 'urgent'
+                            ? 'text-orange-600 dark:text-orange-400 font-medium'
+                            : task.urgency === 'warning'
+                            ? 'text-yellow-600 dark:text-yellow-400 font-medium'
+                            : 'text-gray-600 dark:text-gray-400'
+                        }`}>
+                          {task.dueDate}
+                          {task.urgency === 'overdue' && ' (Overdue)'}
+                          {task.urgency === 'today' && ' (Today!)'}
+                        </span>
                       </div>
                     )}
                   </div>
                   {task.tags.length > 0 && (
                     <div className="flex flex-wrap gap-1">
                       {task.tags.slice(0, 3).map((tag, index) => (
-                        <span 
+                        <span
                           key={index}
                           className="inline-flex items-center px-2 py-1 text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded-md"
                         >
@@ -285,21 +438,22 @@ const Tasks = () => {
                 <div className="text-gray-400 dark:text-gray-500 mb-4">
                   <CheckCircle className="h-12 w-12 mx-auto" />
                 </div>
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No projects yet</h3>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Nessun progetto ancora</h3>
                 <p className="text-gray-600 dark:text-gray-400 mb-4">
-                  Create your first project with development steps to see tasks here.
+                  Crea il tuo primo progetto con step di sviluppo per vedere i task qui.
                 </p>
-                <button 
+                <button
                   onClick={() => window.location.href = '#projects'}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
-                  Go to Projects
+                  Vai ai Progetti
                 </button>
               </div>
             )}
           </div>
         )}
       </div>
+
     </div>
   );
 };

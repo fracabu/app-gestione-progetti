@@ -7,13 +7,15 @@ interface ProjectFormProps {
   onSave: (project: Omit<Project, 'id'> | Partial<Project>) => Promise<void>;
   onCancel: () => void;
   isLoading?: boolean;
+  focusTaskId?: string | null;
 }
 
-const ProjectForm: React.FC<ProjectFormProps> = ({ 
-  project, 
-  onSave, 
-  onCancel, 
-  isLoading = false 
+const ProjectForm: React.FC<ProjectFormProps> = ({
+  project,
+  onSave,
+  onCancel,
+  isLoading = false,
+  focusTaskId = null
 }) => {
   const [formData, setFormData] = useState({
     name: project?.name || '',

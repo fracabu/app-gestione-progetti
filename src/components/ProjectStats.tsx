@@ -28,35 +28,35 @@ const ProjectStats: React.FC<ProjectStatsProps> = ({ projects }) => {
 
   const stats = [
     {
-      title: 'Total Projects',
+      title: 'Progetti Totali',
       value: totalProjects,
       icon: BarChart3,
       color: 'text-blue-600 dark:text-blue-400',
       bgColor: 'bg-blue-100 dark:bg-blue-900/30'
     },
     {
-      title: 'Active',
+      title: 'Attivi',
       value: activeProjects,
       icon: TrendingUp,
       color: 'text-purple-600 dark:text-purple-400',
       bgColor: 'bg-purple-100 dark:bg-purple-900/30'
     },
     {
-      title: 'Completed',
+      title: 'Completati',
       value: completedProjects,
       icon: CheckCircle,
       color: 'text-green-600 dark:text-green-400',
       bgColor: 'bg-green-100 dark:bg-green-900/30'
     },
     {
-      title: 'Overdue',
+      title: 'In Ritardo',
       value: overdue,
       icon: AlertTriangle,
       color: 'text-red-600 dark:text-red-400',
       bgColor: 'bg-red-100 dark:bg-red-900/30'
     },
     {
-      title: 'Avg Progress',
+      title: 'Progresso Medio',
       value: `${averageProgress}%`,
       icon: Clock,
       color: 'text-orange-600 dark:text-orange-400',

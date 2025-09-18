@@ -27,74 +27,7 @@ interface Task {
 }
 
 const TaskTable = () => {
-  const tasks: Task[] = [
-    {
-      id: '1',
-      name: 'Design new landing page hero section',
-      status: 'In progress',
-      priority: 'High',
-      assignee: { name: 'Sarah Chen', avatar: '', initials: 'SC' },
-      dueDate: 'Dec 15',
-      project: 'Website Redesign',
-      comments: 3,
-      attachments: 2
-    },
-    {
-      id: '2',
-      name: 'Implement user authentication flow',
-      status: 'Pending',
-      priority: 'Medium',
-      assignee: { name: 'Mike Johnson', avatar: '', initials: 'MJ' },
-      dueDate: 'Dec 18',
-      project: 'Auth System',
-      comments: 1,
-      attachments: 0
-    },
-    {
-      id: '3',
-      name: 'Write API documentation',
-      status: 'Complete',
-      priority: 'Low',
-      assignee: { name: 'Alex Rodriguez', avatar: '', initials: 'AR' },
-      dueDate: 'Dec 12',
-      project: 'Documentation',
-      comments: 5,
-      attachments: 1
-    },
-    {
-      id: '4',
-      name: 'Set up CI/CD pipeline',
-      status: 'Blocked',
-      priority: 'High',
-      assignee: { name: 'Emily Davis', avatar: '', initials: 'ED' },
-      dueDate: 'Dec 20',
-      project: 'DevOps',
-      comments: 2,
-      attachments: 3
-    },
-    {
-      id: '5',
-      name: 'Conduct user research interviews',
-      status: 'In progress',
-      priority: 'Medium',
-      assignee: { name: 'John Smith', avatar: '', initials: 'JS' },
-      dueDate: 'Dec 16',
-      project: 'User Research',
-      comments: 0,
-      attachments: 0
-    },
-    {
-      id: '6',
-      name: 'Optimize database queries',
-      status: 'Pending',
-      priority: 'High',
-      assignee: { name: 'Lisa Wang', avatar: '', initials: 'LW' },
-      dueDate: 'Dec 22',
-      project: 'Performance',
-      comments: 1,
-      attachments: 0
-    }
-  ];
+  const tasks: Task[] = [];
 
   const getStatusColor = (status: string) => {
     switch (status) {
