@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState } from 'react';
 
-type NavigationSection = 'projects' | 'tasks' | 'settings' | 'project-editor';
+type NavigationSection = 'projects' | 'tasks' | 'calendar' | 'settings' | 'project-editor';
 type ViewMode = 'list' | 'grid' | 'calendar';
 
 interface NavigationContextType {

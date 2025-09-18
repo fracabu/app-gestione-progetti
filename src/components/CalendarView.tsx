@@ -1,205 +1,233 @@
-import React from 'react';
-import { Calendar, Clock, AlertTriangle, User } from 'lucide-react';
-import { Project, Task } from '../data/projects';
+import React, { useState } from 'react';
+import { ChevronLeft, ChevronRight, Calendar, Clock, AlertCircle } from 'lucide-react';
+import { useProjects } from '../hooks/useProjects';
+import { useNavigation } from '../contexts/NavigationContext';
 
-interface CalendarViewProps {
-  projects: Project[];
-}
+const CalendarView = () => {
+  const { projects } = useProjects();
+  const { setActiveSection, setEditingProjectId } = useNavigation();
+  const [currentMonth, setCurrentMonth] = useState(new Date());
 
-const CalendarView: React.FC<CalendarViewProps> = ({ projects }) => {
-  // Extract all tasks with due dates
-  const tasksWithDates = projects.flatMap(project =>
-    (project.tasks || [])
-      .filter(task => task.dueDate)
-      .map(task => ({
-        ...task,
-        projectName: project.name,
-        projectId: project.id,
-        projectStatus: project.status
-      }))
-  );
+  // Get calendar data for current month
+  const year = currentMonth.getFullYear();
+  const month = currentMonth.getMonth();
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  const startDate = new Date(firstDay);
+  startDate.setDate(startDate.getDate() - firstDay.getDay());
 
-  // Get current date and week dates
-  const today = new Date();
-  const currentWeekStart = new Date(today);
-  currentWeekStart.setDate(today.getDate() - today.getDay());
-
-  const weekDays = Array.from({ length: 7 }, (_, i) => {
-    const date = new Date(currentWeekStart);
-    date.setDate(currentWeekStart.getDate() + i);
-    return date;
+  const monthName = currentMonth.toLocaleDateString('it-IT', {
+    month: 'long',
+    year: 'numeric'
   });
 
-  const getTasksForDate = (date: Date) => {
-    const dateStr = date.toISOString().split('T')[0];
-    return tasksWithDates.filter(task => task.dueDate === dateStr);
-  };
+  // Generate calendar days
+  const days = [];
+  for (let i = 0; i < 42; i++) {
+    const date = new Date(startDate);
+    date.setDate(startDate.getDate() + i);
+    days.push(date);
+  }
 
-  const getUrgencyLevel = (dueDate: string) => {
-    const today = new Date();
-    const due = new Date(dueDate);
-    const diffTime = due.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffDays < 0) return 'overdue';
-    if (diffDays === 0) return 'today';
-    if (diffDays <= 3) return 'urgent';
-    return 'normal';
-  };
-
-  const getUrgencyColor = (urgency: string) => {
-    switch (urgency) {
-      case 'overdue':
-        return 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 border-l-red-500';
-      case 'today':
-        return 'bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300 border-l-orange-500';
-      case 'urgent':
-        return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 border-l-yellow-500';
-      default:
-        return 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border-l-blue-500';
-    }
-  };
-
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString('it-IT', {
-      weekday: 'short',
-      day: 'numeric',
-      month: 'short'
+  // Get projects for a specific date
+  const getProjectsForDate = (date: Date) => {
+    return projects.filter(project => {
+      if (!project.dueDate) return false;
+      const dueDate = new Date(project.dueDate);
+      return (
+        dueDate.getDate() === date.getDate() &&
+        dueDate.getMonth() === date.getMonth() &&
+        dueDate.getFullYear() === date.getFullYear()
+      );
     });
   };
 
+  const navigateMonth = (direction: 'prev' | 'next') => {
+    const newMonth = new Date(currentMonth);
+    if (direction === 'prev') {
+      newMonth.setMonth(newMonth.getMonth() - 1);
+    } else {
+      newMonth.setMonth(newMonth.getMonth() + 1);
+    }
+    setCurrentMonth(newMonth);
+  };
+
+  const handleProjectClick = (projectId: string) => {
+    setEditingProjectId(projectId);
+    setActiveSection('project-editor');
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'Planning':
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
+      case 'In Development':
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
+      case 'Testing':
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
+      case 'Deployed':
+        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+      case 'Maintenance':
+        return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
+      default:
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'Planning':
+        return 'Pianificazione';
+      case 'In Development':
+        return 'In Sviluppo';
+      case 'Testing':
+        return 'Test';
+      case 'Deployed':
+        return 'Pubblicato';
+      case 'Maintenance':
+        return 'Manutenzione';
+      default:
+        return status;
+    }
+  };
+
   const isToday = (date: Date) => {
-    return date.toDateString() === today.toDateString();
+    const today = new Date();
+    return (
+      date.getDate() === today.getDate() &&
+      date.getMonth() === today.getMonth() &&
+      date.getFullYear() === today.getFullYear()
+    );
+  };
+
+  const isCurrentMonth = (date: Date) => {
+    return date.getMonth() === month;
   };
 
   return (
-    <div className="space-y-6">
-      {/* Calendar Header */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Project Calendar</h2>
-          <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
-            <Calendar className="h-4 w-4" />
-            <span>Week of {formatDate(weekDays[0])}</span>
+    <div className="flex-1 flex flex-col min-h-0">
+      {/* Header */}
+      <div className="px-4 md:px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Calendario</h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Vista mensile dei progetti e delle scadenze
+            </p>
           </div>
-        </div>
-
-        {/* Week View */}
-        <div className="grid grid-cols-7 gap-4">
-          {weekDays.map((date, index) => {
-            const dayTasks = getTasksForDate(date);
-            const dayName = date.toLocaleDateString('it-IT', { weekday: 'short' });
-
-            return (
-              <div key={index} className="space-y-2">
-                {/* Day Header */}
-                <div className={`text-center p-2 rounded-lg ${
-                  isToday(date)
-                    ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-900 dark:text-blue-300'
-                    : 'bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-                }`}>
-                  <div className="text-xs font-medium uppercase">{dayName}</div>
-                  <div className="text-lg font-bold">{date.getDate()}</div>
-                </div>
-
-                {/* Tasks for this day */}
-                <div className="space-y-1 min-h-[200px]">
-                  {dayTasks.map((task, taskIndex) => {
-                    const urgency = getUrgencyLevel(task.dueDate);
-                    return (
-                      <div
-                        key={taskIndex}
-                        className={`p-2 rounded text-xs border-l-2 ${getUrgencyColor(urgency)}`}
-                      >
-                        <div className="font-medium truncate" title={task.title}>
-                          {task.title}
-                        </div>
-                        <div className="text-xs opacity-75 truncate" title={task.projectName}>
-                          📁 {task.projectName}
-                        </div>
-                        {task.assignee && (
-                          <div className="text-xs opacity-75 truncate">
-                            👤 {task.assignee}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
         </div>
       </div>
 
-      {/* Upcoming Tasks */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Upcoming Tasks</h3>
+      {/* Calendar Navigation */}
+      <div className="px-4 md:px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white capitalize">
+            {monthName}
+          </h2>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => navigateMonth('prev')}
+              className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+            <button
+              onClick={() => setCurrentMonth(new Date())}
+              className="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            >
+              Oggi
+            </button>
+            <button
+              onClick={() => navigateMonth('next')}
+              className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+      </div>
 
-        {/* Next 30 days tasks */}
-        <div className="space-y-3">
-          {tasksWithDates
-            .filter(task => {
-              const taskDate = new Date(task.dueDate);
-              const thirtyDaysFromNow = new Date();
-              thirtyDaysFromNow.setDate(today.getDate() + 30);
-              return taskDate >= today && taskDate <= thirtyDaysFromNow;
-            })
-            .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
-            .slice(0, 10)
-            .map((task, index) => {
-              const urgency = getUrgencyLevel(task.dueDate);
-              const taskDate = new Date(task.dueDate);
+      {/* Calendar Grid */}
+      <div className="flex-1 overflow-auto p-4 md:p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+          {/* Days of week header */}
+          <div className="grid grid-cols-7 bg-gray-50 dark:bg-gray-700">
+            {['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'].map((day) => (
+              <div key={day} className="p-3 text-center text-sm font-medium text-gray-700 dark:text-gray-300">
+                {day}
+              </div>
+            ))}
+          </div>
+
+          {/* Calendar days */}
+          <div className="grid grid-cols-7">
+            {days.map((date, index) => {
+              const dayProjects = getProjectsForDate(date);
+              const isCurrentMonthDay = isCurrentMonth(date);
+              const isTodayDate = isToday(date);
 
               return (
                 <div
                   key={index}
-                  className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
+                  className={`min-h-24 md:min-h-32 p-2 border-r border-b border-gray-200 dark:border-gray-600 ${
+                    isCurrentMonthDay
+                      ? 'bg-white dark:bg-gray-800'
+                      : 'bg-gray-50 dark:bg-gray-700/50'
+                  }`}
                 >
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2">
-                      <h4 className="font-medium text-gray-900 dark:text-white">{task.title}</h4>
-                      <span className={`inline-flex items-center px-2 py-1 text-xs rounded-full ${
-                        urgency === 'overdue' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300' :
-                        urgency === 'today' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300' :
-                        urgency === 'urgent' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300' :
-                        'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
-                      }`}>
-                        {urgency === 'overdue' && <AlertTriangle className="h-3 w-3 mr-1" />}
-                        {urgency === 'today' && <Clock className="h-3 w-3 mr-1" />}
-                        {urgency === 'urgent' && <Clock className="h-3 w-3 mr-1" />}
-                        {urgency === 'overdue' ? 'Overdue' :
-                         urgency === 'today' ? 'Today' :
-                         urgency === 'urgent' ? 'Urgent' : 'Upcoming'}
-                      </span>
-                    </div>
-                    <div className="flex items-center space-x-4 mt-1 text-sm text-gray-600 dark:text-gray-400">
-                      <span>📁 {task.projectName}</span>
-                      {task.assignee && (
-                        <span className="flex items-center">
-                          <User className="h-3 w-3 mr-1" />
-                          {task.assignee}
-                        </span>
+                  <div className={`text-sm font-medium mb-1 ${
+                    isTodayDate
+                      ? 'text-blue-600 dark:text-blue-400 font-bold'
+                      : isCurrentMonthDay
+                      ? 'text-gray-900 dark:text-white'
+                      : 'text-gray-400 dark:text-gray-500'
+                  }`}>
+                    {date.getDate()}
+                  </div>
+
+                  {dayProjects.length > 0 && (
+                    <div className="space-y-1">
+                      {dayProjects.slice(0, 3).map((project) => (
+                        <button
+                          key={project.id}
+                          onClick={() => handleProjectClick(project.id)}
+                          className={`w-full text-left p-1 rounded text-xs font-medium truncate hover:scale-105 transition-transform ${getStatusColor(project.status)}`}
+                          title={`${project.name} - ${getStatusLabel(project.status)}`}
+                        >
+                          {project.name}
+                        </button>
+                      ))}
+                      {dayProjects.length > 3 && (
+                        <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                          +{dayProjects.length - 3} altri
+                        </div>
                       )}
                     </div>
-                  </div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400">
-                    {taskDate.toLocaleDateString('it-IT', {
-                      day: 'numeric',
-                      month: 'short'
-                    })}
-                  </div>
+                  )}
                 </div>
               );
             })}
+          </div>
         </div>
 
-        {tasksWithDates.length === 0 && (
-          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-            <Calendar className="h-12 w-12 mx-auto mb-3 opacity-50" />
-            <p>No upcoming tasks with due dates</p>
+        {/* Legend */}
+        <div className="mt-6 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+          <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3">Legenda Stati</h3>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+            {[
+              { status: 'Planning', label: 'Pianificazione' },
+              { status: 'In Development', label: 'In Sviluppo' },
+              { status: 'Testing', label: 'Test' },
+              { status: 'Deployed', label: 'Pubblicato' },
+              { status: 'Maintenance', label: 'Manutenzione' }
+            ].map(({ status, label }) => (
+              <div key={status} className="flex items-center space-x-2">
+                <div className={`w-3 h-3 rounded ${getStatusColor(status)}`}></div>
+                <span className="text-sm text-gray-700 dark:text-gray-300">{label}</span>
+              </div>
+            ))}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

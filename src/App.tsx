@@ -7,6 +7,7 @@ import ProjectDashboard from './components/ProjectDashboard';
 import Tasks from './components/Tasks';
 import Settings from './components/Settings';
 import ProjectEditor from './components/ProjectEditor';
+import CalendarView from './components/CalendarView';
 
 const AppContent = () => {
   const { activeSection } = useNavigation();
@@ -17,6 +18,8 @@ const AppContent = () => {
         return <ProjectDashboard />;
       case 'tasks':
         return <Tasks />;
+      case 'calendar':
+        return <CalendarView />;
       case 'settings':
         return <Settings />;
       case 'project-editor':

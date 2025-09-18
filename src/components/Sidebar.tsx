@@ -3,52 +3,17 @@ import {
   CheckSquare,
   FileText,
   Settings,
-  Calendar,
-  ChevronLeft,
-  ChevronRight
+  Calendar
 } from 'lucide-react';
 import { useNavigation } from '../contexts/NavigationContext';
-import { useProjects } from '../hooks/useProjects';
 
 const Sidebar = () => {
   const { activeSection, setActiveSection } = useNavigation();
-  const { projects } = useProjects();
-
-  // Get current date and calculate next 3 months
-  const today = new Date();
-  const currentMonth = today.getMonth();
-  const currentYear = today.getFullYear();
-
-  const getMonthData = (monthOffset: number) => {
-    const date = new Date(currentYear, currentMonth + monthOffset, 1);
-    const year = date.getFullYear();
-    const month = date.getMonth();
-    const monthName = date.toLocaleDateString('it-IT', { month: 'long', year: 'numeric' });
-
-    // Get projects with due dates in this month
-    const monthProjects = projects.filter(project => {
-      if (!project.dueDate) return false;
-      const dueDate = new Date(project.dueDate);
-      return dueDate.getMonth() === month && dueDate.getFullYear() === year;
-    });
-
-    return {
-      monthName: monthName.charAt(0).toUpperCase() + monthName.slice(1),
-      projects: monthProjects,
-      month,
-      year
-    };
-  };
-
-  const months = [
-    getMonthData(0), // Current month
-    getMonthData(1), // Next month
-    getMonthData(2)  // Month after next
-  ];
 
   const navigationItems = [
     { icon: CheckSquare, label: 'Progetti', id: 'projects' as const },
     { icon: FileText, label: 'Task', id: 'tasks' as const },
+    { icon: Calendar, label: 'Calendario', id: 'calendar' as const },
     { icon: Settings, label: 'Impostazioni', id: 'settings' as const },
   ];
 
@@ -70,8 +35,8 @@ const Sidebar = () => {
         </div>
 
         {/* Navigation */}
-        <div className="flex-1 py-4 overflow-y-auto">
-          <nav className="space-y-1 px-3 mb-6">
+        <div className="flex-1 py-4">
+          <nav className="space-y-1 px-3">
             {navigationItems.map((item, index) => (
               <button
                 key={index}
@@ -87,49 +52,6 @@ const Sidebar = () => {
               </button>
             ))}
           </nav>
-
-          {/* Calendar Section */}
-          <div className="px-3">
-            <div className="flex items-center space-x-2 mb-4">
-              <Calendar className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-              <h3 className="text-sm font-medium text-gray-900 dark:text-white">Calendario</h3>
-            </div>
-
-            <div className="space-y-4">
-              {months.map((monthData, index) => (
-                <div key={`${monthData.year}-${monthData.month}`} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3">
-                  <h4 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                    {monthData.monthName}
-                  </h4>
-                  {monthData.projects.length > 0 ? (
-                    <div className="space-y-2">
-                      {monthData.projects.map((project) => (
-                        <div key={project.id} className="text-xs">
-                          <div className="flex items-center justify-between">
-                            <span className="text-gray-900 dark:text-white font-medium truncate">
-                              {project.name}
-                            </span>
-                            <span className="text-gray-500 dark:text-gray-400 text-xs ml-2 flex-shrink-0">
-                              {new Date(project.dueDate).getDate()}
-                            </span>
-                          </div>
-                          <div className={`h-1 rounded-full mt-1 ${
-                            project.status === 'Deployed' ? 'bg-green-400' :
-                            project.status === 'In Development' ? 'bg-blue-400' :
-                            project.status === 'Testing' ? 'bg-yellow-400' :
-                            project.status === 'Planning' ? 'bg-gray-400' :
-                            'bg-purple-400'
-                          }`}></div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Nessun progetto</p>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
       </div>
 
