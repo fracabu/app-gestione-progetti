@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
-import { 
-  Plus, 
+import React, { useState, useEffect } from 'react';
+import {
+  Plus,
   Grid3X3,
   List,
   BarChart3,
   Edit,
   Trash2,
-  Search
+  Search,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { useProjects } from '../hooks/useProjects';
 import { useNavigation } from '../contexts/NavigationContext';
@@ -15,12 +17,22 @@ import ProjectStats from './ProjectStats';
 import { Project } from '../data/projects';
 
 const ProjectDashboard = () => {
-  const { projects, loading, error, deleteProject } = useProjects();
+  const { projects, loading, error, deleteProject, updateProject } = useProjects();
   const { setActiveSection, setEditingProjectId, viewMode } = useNavigation();
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [showStats, setShowStats] = useState<boolean>(false);
+  const [draggedProject, setDraggedProject] = useState<Project | null>(null);
+  const [draggedOverIndex, setDraggedOverIndex] = useState<number | null>(null);
+  const [localProjects, setLocalProjects] = useState<Project[]>([]);
+  const [autoScrollInterval, setAutoScrollInterval] = useState<NodeJS.Timeout | null>(null);
 
-  const filteredProjects = projects.filter(project => {
+  // Sync local projects with the projects from the hook
+  useEffect(() => {
+    setLocalProjects(projects);
+  }, [projects]);
+
+  const filteredProjects = localProjects.filter(project => {
     const matchesSearch = project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          project.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filterStatus === 'all' || project.status === filterStatus;
@@ -50,6 +62,81 @@ const ProjectDashboard = () => {
     if (window.confirm('Sei sicuro di voler eliminare questo progetto?')) {
       await deleteProject(id);
     }
+  };
+
+  const handleDragStart = (e: React.DragEvent, project: Project) => {
+    setDraggedProject(project);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', '');
+
+    // Add visual feedback
+    if (e.currentTarget instanceof HTMLElement) {
+      e.currentTarget.style.opacity = '0.5';
+    }
+  };
+
+  const handleDragEnd = (e: React.DragEvent) => {
+    setDraggedProject(null);
+    setDraggedOverIndex(null);
+
+    // Stop auto-scroll
+    if (autoScrollInterval) {
+      clearInterval(autoScrollInterval);
+      setAutoScrollInterval(null);
+    }
+
+    // Reset visual feedback
+    if (e.currentTarget instanceof HTMLElement) {
+      e.currentTarget.style.opacity = '1';
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDraggedOverIndex(index);
+  };
+
+  const handleDragLeave = () => {
+    setDraggedOverIndex(null);
+  };
+
+  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+
+    if (!draggedProject) return;
+
+    const currentIndex = filteredProjects.findIndex(p => p.id === draggedProject.id);
+    if (currentIndex === dropIndex) return;
+
+    // Create a new array with reordered projects
+    const newFilteredProjects = [...filteredProjects];
+    const [removed] = newFilteredProjects.splice(currentIndex, 1);
+    newFilteredProjects.splice(dropIndex, 0, removed);
+
+    // Update the order in all projects (not just filtered)
+    const newAllProjects = [...localProjects];
+
+    // Remove the dragged project from its current position
+    const originalIndex = newAllProjects.findIndex(p => p.id === draggedProject.id);
+    newAllProjects.splice(originalIndex, 1);
+
+    // Find the new position in the full array based on the filtered array
+    let insertIndex = 0;
+    if (dropIndex > 0 && dropIndex < newFilteredProjects.length) {
+      const projectBefore = newFilteredProjects[dropIndex - 1];
+      insertIndex = newAllProjects.findIndex(p => p.id === projectBefore.id) + 1;
+    } else if (dropIndex === 0 && newFilteredProjects.length > 1) {
+      const projectAfter = newFilteredProjects[1];
+      insertIndex = newAllProjects.findIndex(p => p.id === projectAfter.id);
+    }
+
+    // Insert at the new position
+    newAllProjects.splice(insertIndex, 0, draggedProject);
+
+    setLocalProjects(newAllProjects);
+    setDraggedProject(null);
+    setDraggedOverIndex(null);
   };
 
   if (loading) {
@@ -87,7 +174,10 @@ const ProjectDashboard = () => {
             <div>
               <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Progetti</h1>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                Gestisci e monitora i tuoi progetti di sviluppo
+                {draggedProject
+                  ? '🔄 Trascina per riordinare i progetti'
+                  : 'Gestisci e monitora i tuoi progetti di sviluppo'
+                }
               </p>
             </div>
             <button
@@ -100,9 +190,29 @@ const ProjectDashboard = () => {
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="px-4 md:px-6 py-4 flex-shrink-0">
-          <ProjectStats projects={projects} />
+        {/* Stats - Collapsible */}
+        <div className="px-4 md:px-6 flex-shrink-0 border-b border-gray-200 dark:border-gray-700">
+          <button
+            onClick={() => setShowStats(!showStats)}
+            className="w-full flex items-center justify-between py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors rounded-lg px-2"
+          >
+            <div className="flex items-center space-x-2">
+              <BarChart3 className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+              <span className="text-sm font-medium text-gray-900 dark:text-white">
+                Statistiche Progetti
+              </span>
+            </div>
+            {showStats ? (
+              <ChevronUp className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+            ) : (
+              <ChevronDown className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+            )}
+          </button>
+          {showStats && (
+            <div className="pb-4">
+              <ProjectStats projects={projects} />
+            </div>
+          )}
         </div>
 
         {/* Controls */}
@@ -160,13 +270,31 @@ const ProjectDashboard = () => {
                   ? 'grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6'
                   : 'space-y-4'
               }>
-                {filteredProjects.map((project) => (
-                  <ProjectCard
+                {filteredProjects.map((project, index) => (
+                  <div
                     key={project.id}
-                    project={project}
-                    onEdit={handleEditProject}
-                    onDelete={handleDeleteProject}
-                  />
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, project)}
+                    onDragEnd={handleDragEnd}
+                    onDragOver={(e) => handleDragOver(e, index)}
+                    onDragLeave={handleDragLeave}
+                    onDrop={(e) => handleDrop(e, index)}
+                    className={`transition-all duration-200 cursor-move ${
+                      draggedOverIndex === index
+                        ? 'transform scale-105 ring-2 ring-blue-400 ring-opacity-50'
+                        : ''
+                    } ${
+                      draggedProject?.id === project.id
+                        ? 'opacity-50 transform rotate-2'
+                        : ''
+                    }`}
+                  >
+                    <ProjectCard
+                      project={project}
+                      onEdit={handleEditProject}
+                      onDelete={handleDeleteProject}
+                    />
+                  </div>
                 ))}
               </div>
             )}

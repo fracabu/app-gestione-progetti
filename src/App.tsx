@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { NavigationProvider, useNavigation } from './contexts/NavigationContext';
 import { useProjects } from './hooks/useProjects';
@@ -9,10 +9,14 @@ import Tasks from './components/Tasks';
 import Settings from './components/Settings';
 import ProjectEditor from './components/ProjectEditor';
 import CalendarView from './components/CalendarView';
+import Notifications from './components/Notifications';
+import GeminiChatSidebar from './components/GeminiChatSidebar';
 
 const AppContent = () => {
   const { activeSection, editingProjectId, setActiveSection } = useNavigation();
   const { projects } = useProjects();
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [chatWidth, setChatWidth] = useState(320);
 
   // Validate project-editor state on mount and when projects change
   useEffect(() => {
@@ -33,6 +37,8 @@ const AppContent = () => {
         return <Tasks />;
       case 'calendar':
         return <CalendarView />;
+      case 'notifications':
+        return <Notifications />;
       case 'settings':
         return <Settings />;
       case 'project-editor':
@@ -43,14 +49,25 @@ const AppContent = () => {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row h-screen bg-white dark:bg-gray-900">
+    <div className="flex flex-col lg:flex-row h-screen bg-white dark:bg-gray-900 relative">
       <Sidebar />
-      <div className="flex-1 flex flex-col min-h-0 h-screen lg:h-auto">
+      <div
+        className="flex-1 flex flex-col min-h-0 h-screen lg:h-auto transition-all duration-300"
+        style={{
+          marginRight: isChatOpen ? `${chatWidth}px` : '0px'
+        }}
+      >
         <TopNavigation />
         <div className="flex-1 overflow-auto pb-16 lg:pb-0 min-h-0">
           {renderContent()}
         </div>
       </div>
+      <GeminiChatSidebar
+        isOpen={isChatOpen}
+        onToggle={() => setIsChatOpen(!isChatOpen)}
+        width={chatWidth}
+        onWidthChange={setChatWidth}
+      />
     </div>
   );
 };

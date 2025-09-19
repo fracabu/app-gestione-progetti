@@ -24,9 +24,9 @@ const Tasks = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterPriority, setFilterPriority] = useState<string>('all');
+  const [showCompleted, setShowCompleted] = useState<boolean>(false);
 
   // Estrai tutti i task da tutti i progetti con informazioni aggiuntive
-  // ESCLUDI automaticamente i task completati dalla vista Tasks
   const allTasks: (Task & {
     projectName: string;
     projectId: string;
@@ -34,7 +34,7 @@ const Tasks = () => {
     projectCategory: string;
   })[] = projects.flatMap(project =>
     (project.tasks || [])
-      .filter(task => task.status !== 'Done') // Nasconde i task completati
+      .filter(task => showCompleted ? true : task.status !== 'Done') // Filtra i completati in base al toggle
       .map(task => ({
         ...task,
         projectName: project.name,
@@ -171,16 +171,32 @@ const Tasks = () => {
     }
   };
 
+  // Calcola le statistiche su TUTTI i task (inclusi quelli completati)
+  const allTasksForStats = projects.flatMap(project =>
+    (project.tasks || []).map(task => ({
+      ...task,
+      projectName: project.name,
+      projectId: project.id,
+      projectStatus: project.status,
+      projectCategory: project.category
+    }))
+  );
+
+  const allTasksWithUrgencyForStats = allTasksForStats.map(task => ({
+    ...task,
+    urgency: getTaskUrgency(task.dueDate)
+  }));
+
   const taskStats = {
-    total: allTasks.length,
-    todo: allTasks.filter(t => t.status === 'Todo').length,
-    inProgress: allTasks.filter(t => t.status === 'In Progress').length,
-    review: allTasks.filter(t => t.status === 'Review').length,
-    done: allTasks.filter(t => t.status === 'Done').length,
-    overdue: tasksWithUrgency.filter(t => t.urgency === 'overdue').length,
-    today: tasksWithUrgency.filter(t => t.urgency === 'today').length,
-    urgent: tasksWithUrgency.filter(t => t.urgency === 'urgent').length,
-    warning: tasksWithUrgency.filter(t => t.urgency === 'warning').length
+    total: allTasksForStats.length,
+    todo: allTasksForStats.filter(t => t.status === 'Todo').length,
+    inProgress: allTasksForStats.filter(t => t.status === 'In Progress').length,
+    review: allTasksForStats.filter(t => t.status === 'Review').length,
+    done: allTasksForStats.filter(t => t.status === 'Done').length,
+    overdue: allTasksWithUrgencyForStats.filter(t => t.urgency === 'overdue' && t.status !== 'Done').length,
+    today: allTasksWithUrgencyForStats.filter(t => t.urgency === 'today' && t.status !== 'Done').length,
+    urgent: allTasksWithUrgencyForStats.filter(t => t.urgency === 'urgent' && t.status !== 'Done').length,
+    warning: allTasksWithUrgencyForStats.filter(t => t.urgency === 'warning' && t.status !== 'Done').length
   };
 
   const getProjectStatusColor = (status: string) => {
@@ -225,7 +241,7 @@ const Tasks = () => {
 
       {/* Stats */}
       <div className="px-4 md:px-6 py-4 flex-shrink-0">
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-9 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-10 gap-3">
           {/* Status Stats */}
           <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
             <p className="text-xs font-medium text-gray-600 dark:text-gray-400">Totale</p>
@@ -242,6 +258,10 @@ const Tasks = () => {
           <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
             <p className="text-xs font-medium text-yellow-600 dark:text-yellow-400">Revisione</p>
             <p className="text-xl font-bold text-gray-900 dark:text-white">{taskStats.review}</p>
+          </div>
+          <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+            <p className="text-xs font-medium text-green-600 dark:text-green-400">Completati</p>
+            <p className="text-xl font-bold text-green-700 dark:text-green-300">{taskStats.done}</p>
           </div>
 
           {/* Urgency Stats */}
@@ -302,6 +322,7 @@ const Tasks = () => {
               <option value="Todo">Da Fare</option>
               <option value="In Progress">In Corso</option>
               <option value="Review">In Revisione</option>
+              {showCompleted && <option value="Done">Completati</option>}
             </select>
 
             <select
@@ -314,6 +335,23 @@ const Tasks = () => {
               <option value="Medium">Media</option>
               <option value="Low">Bassa</option>
             </select>
+
+            {/* Toggle per mostrare task completati */}
+            <div className="flex items-center space-x-2 px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg">
+              <input
+                type="checkbox"
+                id="showCompleted"
+                checked={showCompleted}
+                onChange={(e) => setShowCompleted(e.target.checked)}
+                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+              />
+              <label
+                htmlFor="showCompleted"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap cursor-pointer"
+              >
+                Mostra completati ({taskStats.done})
+              </label>
+            </div>
           </div>
         </div>
       </div>

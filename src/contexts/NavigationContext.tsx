@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-type NavigationSection = 'projects' | 'tasks' | 'calendar' | 'settings' | 'project-editor';
+type NavigationSection = 'projects' | 'tasks' | 'calendar' | 'notifications' | 'settings' | 'project-editor';
 type ViewMode = 'list' | 'grid' | 'calendar';
 
 interface NavigationContextType {
@@ -10,6 +10,8 @@ interface NavigationContextType {
   setEditingProjectId: (projectId: string | null) => void;
   viewMode: ViewMode;
   setViewMode: (mode: ViewMode) => void;
+  sidebarCollapsed: boolean;
+  setSidebarCollapsed: (collapsed: boolean) => void;
 }
 
 const NavigationContext = createContext<NavigationContextType | undefined>(undefined);
@@ -26,7 +28,7 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   // Initialize state from localStorage or defaults
   const [activeSection, setActiveSection] = useState<NavigationSection>(() => {
     const saved = localStorage.getItem('activeSection');
-    return (saved && ['projects', 'tasks', 'calendar', 'settings', 'project-editor'].includes(saved))
+    return (saved && ['projects', 'tasks', 'calendar', 'notifications', 'settings', 'project-editor'].includes(saved))
       ? saved as NavigationSection
       : 'projects';
   });
@@ -41,6 +43,11 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     return (saved && ['list', 'grid', 'calendar'].includes(saved))
       ? saved as ViewMode
       : 'grid';
+  });
+
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
+    const saved = localStorage.getItem('sidebarCollapsed');
+    return saved === 'true';
   });
 
   // Persist state changes to localStorage
@@ -60,6 +67,10 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     localStorage.setItem('viewMode', viewMode);
   }, [viewMode]);
 
+  useEffect(() => {
+    localStorage.setItem('sidebarCollapsed', sidebarCollapsed.toString());
+  }, [sidebarCollapsed]);
+
   // Enhanced setActiveSection to handle navigation persistence correctly
   const handleSetActiveSection = (section: NavigationSection) => {
     // If switching away from project-editor, clear the editing state
@@ -76,7 +87,9 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       editingProjectId,
       setEditingProjectId,
       viewMode,
-      setViewMode
+      setViewMode,
+      sidebarCollapsed,
+      setSidebarCollapsed
     }}>
       {children}
     </NavigationContext.Provider>

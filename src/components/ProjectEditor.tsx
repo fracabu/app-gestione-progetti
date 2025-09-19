@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Save, Loader2, Plus, Trash2, Calendar, User, Flag } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, Plus, Trash2, Calendar, User, Flag, Sparkles } from 'lucide-react';
 import { useNavigation } from '../contexts/NavigationContext';
 import { useProjects } from '../hooks/useProjects';
 import { Project, Task } from '../data/projects';
+import AIProjectWizard from './AIProjectWizard';
 
 const ProjectEditor = () => {
   const { setActiveSection, editingProjectId, setEditingProjectId } = useNavigation();
@@ -15,11 +16,11 @@ const ProjectEditor = () => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    status: 'Planning' as const,
-    priority: 'Medium' as const,
+    status: 'Planning' as 'Planning' | 'In Development' | 'Testing' | 'Deployed' | 'Maintenance',
+    priority: 'Medium' as 'Low' | 'Medium' | 'High',
     progress: 0,
     dueDate: '',
-    category: 'Web App' as const,
+    category: 'Web App' as 'Web App' | 'Landing Page' | 'Platform' | 'Tool',
     technologies: '',
     repository: '',
     deployUrl: ''
@@ -28,6 +29,8 @@ const ProjectEditor = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [notes, setNotes] = useState<string[]>([]);
   const [newNote, setNewNote] = useState('');
+  const [showAIWizard, setShowAIWizard] = useState(false);
+  const [useManualMode, setUseManualMode] = useState(false);
 
   // Initialize form with project data
   useEffect(() => {
@@ -138,6 +141,25 @@ const ProjectEditor = () => {
     setNotes(prev => prev.filter((_, i) => i !== index));
   };
 
+  const handleAIProjectGenerated = (generatedProject: any) => {
+    setFormData({
+      name: generatedProject.name,
+      description: generatedProject.description,
+      status: generatedProject.status || 'Planning',
+      priority: generatedProject.priority || 'Medium',
+      progress: generatedProject.progress || 0,
+      dueDate: generatedProject.dueDate || '',
+      category: generatedProject.category || 'Web App',
+      technologies: Array.isArray(generatedProject.technologies) ? generatedProject.technologies.join(', ') : generatedProject.technologies || '',
+      repository: generatedProject.repository || '',
+      deployUrl: generatedProject.deployUrl || ''
+    });
+    setTasks(generatedProject.tasks || []);
+    setNotes(generatedProject.notes || []);
+    setShowAIWizard(false);
+    setUseManualMode(true);
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Todo': return 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300';
@@ -196,6 +218,24 @@ const ProjectEditor = () => {
       {/* Content */}
       <div className="flex-1 overflow-y-auto webkit-overflow-scrolling-touch mobile-flex-content p-4 md:p-6 pb-16 lg:pb-6">
         <div className="max-w-4xl mx-auto space-y-6 md:space-y-8">
+          {/* AI Wizard for New Projects */}
+          {isNewProject && !useManualMode && (
+            <div className="space-y-4">
+              <AIProjectWizard onCreateProject={handleAIProjectGenerated} />
+              <div className="text-center">
+                <button
+                  onClick={() => setUseManualMode(true)}
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white underline"
+                >
+                  Oppure crea manualmente il progetto
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Manual Form - Show for existing projects or when manual mode is selected */}
+          {(!isNewProject || useManualMode) && (
+            <>
           {/* Basic Information */}
           <div className="bg-white dark:bg-gray-800 rounded-lg p-4 md:p-6 border border-gray-200 dark:border-gray-700">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 md:mb-6">Informazioni Base</h2>
@@ -496,7 +536,10 @@ const ProjectEditor = () => {
               )}
             </div>
           </div>
+          </>
+          )}
         </div>
+        
       </div>
     </div>
   );
