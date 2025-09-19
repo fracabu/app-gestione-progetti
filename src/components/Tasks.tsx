@@ -206,7 +206,7 @@ const Tasks = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col min-h-0">
+    <div className="flex-1 flex flex-col mobile-flex-container h-full">
       {/* Header */}
       <div className="px-4 md:px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -245,28 +245,28 @@ const Tasks = () => {
           </div>
 
           {/* Urgency Stats */}
-          <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-3 border border-red-200 dark:border-red-800">
+          <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
             <div className="flex items-center space-x-1">
               <AlertTriangle className="h-3 w-3 text-red-600 dark:text-red-400" />
               <p className="text-xs font-medium text-red-600 dark:text-red-400">Scaduti</p>
             </div>
             <p className="text-xl font-bold text-red-700 dark:text-red-300">{taskStats.overdue}</p>
           </div>
-          <div className="bg-red-25 dark:bg-red-900/10 rounded-lg p-3 border border-red-100 dark:border-red-800">
+          <div className="bg-red-25 dark:bg-red-900/10 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
             <div className="flex items-center space-x-1">
               <Timer className="h-3 w-3 text-red-500 dark:text-red-400" />
               <p className="text-xs font-medium text-red-500 dark:text-red-400">Oggi</p>
             </div>
             <p className="text-xl font-bold text-red-600 dark:text-red-300">{taskStats.today}</p>
           </div>
-          <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-3 border border-orange-200 dark:border-orange-800">
+          <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
             <div className="flex items-center space-x-1">
               <Clock className="h-3 w-3 text-orange-600 dark:text-orange-400" />
               <p className="text-xs font-medium text-orange-600 dark:text-orange-400">Urgenti</p>
             </div>
             <p className="text-xl font-bold text-orange-700 dark:text-orange-300">{taskStats.urgent}</p>
           </div>
-          <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-3 border border-yellow-200 dark:border-yellow-800">
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
             <div className="flex items-center space-x-1">
               <Clock className="h-3 w-3 text-yellow-600 dark:text-yellow-400" />
               <p className="text-xs font-medium text-yellow-600 dark:text-yellow-400">Settimana</p>
@@ -319,7 +319,8 @@ const Tasks = () => {
       </div>
 
       {/* Tasks List */}
-      <div className="flex-1 overflow-y-auto p-4 md:p-6 min-h-0">
+      <div className="flex-1 overflow-y-auto webkit-overflow-scrolling-touch mobile-flex-content">
+        <div className="p-4 md:p-6 pb-16 lg:pb-6">
         {filteredTasks.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-gray-400 dark:text-gray-500 mb-4">
@@ -336,9 +337,9 @@ const Tasks = () => {
         ) : (
           <div className={
             viewMode === 'grid'
-              ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'
+              ? 'grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'
               : viewMode === 'calendar'
-              ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4'
+              ? 'grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4'
               : 'space-y-4'
           }>
             {filteredTasks.map((task) => (
@@ -454,6 +455,7 @@ const Tasks = () => {
             )}
           </div>
         )}
+        </div>
       </div>
 
     </div>

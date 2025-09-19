@@ -80,9 +80,9 @@ const ProjectDashboard = () => {
   }
 
   return (
-    <div className="flex-1 flex flex-col min-h-0">
+    <div className="flex-1 flex flex-col mobile-flex-container h-full">
         {/* Header */}
-        <div className="px-4 md:px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="px-4 md:px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Progetti</h1>
@@ -139,36 +139,38 @@ const ProjectDashboard = () => {
         </div>
 
         {/* Projects Grid/List */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-6 min-h-0">
-          {filteredProjects.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="text-gray-400 dark:text-gray-500 mb-4">
-                <BarChart3 className="h-12 w-12 mx-auto" />
+        <div className="flex-1 overflow-y-auto webkit-overflow-scrolling-touch mobile-flex-content">
+          <div className="p-4 md:p-6 pb-16 lg:pb-6">
+            {filteredProjects.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="text-gray-400 dark:text-gray-500 mb-4">
+                  <BarChart3 className="h-12 w-12 mx-auto" />
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Nessun progetto trovato</h3>
+                <p className="text-gray-600 dark:text-gray-400 px-4 text-center">
+                  {searchTerm || filterStatus !== 'all'
+                    ? 'Prova a modificare i criteri di ricerca o filtro.'
+                    : 'Inizia creando il tuo primo progetto.'
+                  }
+                </p>
               </div>
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Nessun progetto trovato</h3>
-              <p className="text-gray-600 dark:text-gray-400 px-4 text-center">
-                {searchTerm || filterStatus !== 'all'
-                  ? 'Prova a modificare i criteri di ricerca o filtro.'
-                  : 'Inizia creando il tuo primo progetto.'
-                }
-              </p>
-            </div>
-          ) : (
-            <div className={
-              viewMode === 'grid'
-                ? 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6 pb-6'
-                : 'space-y-4'
-            }>
-              {filteredProjects.map((project) => (
-                <ProjectCard
-                  key={project.id}
-                  project={project}
-                  onEdit={handleEditProject}
-                  onDelete={handleDeleteProject}
-                />
-              ))}
-            </div>
-          )}
+            ) : (
+              <div className={
+                viewMode === 'grid'
+                  ? 'grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6'
+                  : 'space-y-4'
+              }>
+                {filteredProjects.map((project) => (
+                  <ProjectCard
+                    key={project.id}
+                    project={project}
+                    onEdit={handleEditProject}
+                    onDelete={handleDeleteProject}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
   );

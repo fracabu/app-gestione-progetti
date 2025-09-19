@@ -1,3 +1,66 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Mobile scrolling improvements */
+.webkit-overflow-scrolling-touch {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Ensure proper flex behavior on mobile */
+@media (max-width: 1023px) {
+  .mobile-flex-container {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+    min-height: 0 !important;
+  }
+
+  .mobile-flex-content {
+    flex: 1 !important;
+    min-height: 300px !important;
+    overflow-y: auto !important;
+    height: calc(100vh - 300px) !important; /* Sottrae header, stats, filtri e nav bottom */
+    max-height: none !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  /* Force scrollbar visibility on mobile */
+  .mobile-flex-content::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .mobile-flex-content::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+  }
+
+  .mobile-flex-content::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+  }
+
+  .mobile-flex-content::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+  }
+
+  /* Ensure proper viewport height calculation */
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  #root {
+    height: 100%;
+  }
+
+  /* Additional mobile fixes */
+  .mobile-flex-container > * {
+    flex-shrink: 0;
+  }
+
+  .mobile-flex-container .mobile-flex-content {
+    flex-shrink: 1;
+    flex-grow: 1;
+  }
+}

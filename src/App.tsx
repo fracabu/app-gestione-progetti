@@ -30,11 +30,13 @@ const AppContent = () => {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row h-screen bg-white dark:bg-gray-900 overflow-hidden">
+    <div className="flex flex-col lg:flex-row h-screen bg-white dark:bg-gray-900">
       <Sidebar />
-      <div className="flex-1 flex flex-col min-h-0 pb-16 lg:pb-0">
+      <div className="flex-1 flex flex-col min-h-0 h-screen lg:h-auto">
         <TopNavigation />
-        {renderContent()}
+        <div className="flex-1 overflow-auto pb-16 lg:pb-0 min-h-0">
+          {renderContent()}
+        </div>
       </div>
     </div>
   );

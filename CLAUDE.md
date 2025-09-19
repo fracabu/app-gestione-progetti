@@ -28,10 +28,14 @@ This is a React-based project management application called "ProjectFlow" built 
 ### Key Components
 - **Sidebar**: Main navigation with section switching
 - **ProjectDashboard**: Main projects overview and management
-- **TopNavigation**: Header navigation bar component  
-- **Tasks**: Task management interface
+- **TopNavigation**: Header navigation bar component
+- **Tasks**: Task management interface with TaskTable component
 - **Settings**: Application settings panel
 - **ProjectForm**: Modal-based project creation/editing
+- **ProjectEditor**: Advanced project editing interface
+- **ProjectCard**: Individual project display cards
+- **ProjectStats**: Project statistics and analytics
+- **CalendarView**: Calendar interface for project scheduling
 
 ### Data Layer
 - **Models**: `src/data/projects.ts` contains Project and Task interfaces plus sample data
@@ -53,13 +57,26 @@ This is a React-based project management application called "ProjectFlow" built 
 - **State**: React Context for global state (no external state management)
 
 ### Sample Data Migration
-The app includes `migrateData.ts` utility to populate Firebase with sample Italian projects (Il Sorpasso, DevJobMatcher, LinkyThub, Ospitly). Run `window.migrateProjects()` in browser console to load sample data.
+The app includes sample data migration functionality to populate Firebase with Italian projects (Il Sorpasso, DevJobMatcher, LinkyThub, Ospitly). Run `window.migrateProjects()` in browser console to load sample data.
 
 ### Environment Setup
 Firebase connection requires environment variables in `.env` file:
 - VITE_FIREBASE_API_KEY
-- VITE_FIREBASE_AUTH_DOMAIN  
+- VITE_FIREBASE_AUTH_DOMAIN
 - VITE_FIREBASE_PROJECT_ID
 - VITE_FIREBASE_STORAGE_BUCKET
 - VITE_FIREBASE_MESSAGING_SENDER_ID
 - VITE_FIREBASE_APP_ID
+
+### Component Structure
+- **Main Entry**: `src/main.tsx` - Application entry point with React.StrictMode
+- **App Component**: Main app wrapper with ThemeProvider and NavigationProvider
+- **AppContent**: Inner component handling section routing based on NavigationContext
+- **Component Organization**: All UI components in `src/components/` directory
+- **Contexts**: Theme and Navigation contexts in `src/contexts/` directory
+
+### Development Notes
+- **Vite Configuration**: Optimized for React with Lucide React excluded from pre-bundling
+- **TypeScript**: Uses solution-style tsconfig with separate app and node configurations
+- **Italian Locale**: Error messages and some content displayed in Italian
+- **Real-time Features**: All data operations use Firebase onSnapshot for live updates
