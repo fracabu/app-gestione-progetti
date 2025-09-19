@@ -264,7 +264,7 @@ RISPOSTA:`;
   }
 
   private async callGeminiAPI(prompt: string): Promise<string> {
-    const apiKey = localStorage.getItem('gemini_api_key');
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY || localStorage.getItem('gemini_api_key');
     if (!apiKey) {
       throw new Error('API Key Gemini non configurata');
     }
@@ -393,7 +393,7 @@ Puoi comunque:
   }
 
   async testApiKey(): Promise<boolean> {
-    const apiKey = localStorage.getItem('gemini_api_key');
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY || localStorage.getItem('gemini_api_key');
     if (!apiKey) {
       return false;
     }

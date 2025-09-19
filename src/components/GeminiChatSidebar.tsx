@@ -81,7 +81,11 @@ const GeminiChatSidebar: React.FC<GeminiChatSidebarProps> = ({
 
     // Check API key
     if (geminiService.isConfigured()) {
-      setApiKey('***configurata***');
+      if (import.meta.env.VITE_GEMINI_API_KEY) {
+        setApiKey('***configurata via environment***');
+      } else {
+        setApiKey('***configurata***');
+      }
     }
   }, []);
 
@@ -191,7 +195,7 @@ const GeminiChatSidebar: React.FC<GeminiChatSidebarProps> = ({
   };
 
   const handleSaveApiKey = async () => {
-    if (apiKey && apiKey !== '***configurata***') {
+    if (apiKey && !apiKey.includes('***configurata')) {
       geminiService.setApiKey(apiKey);
 
       // Test the API key

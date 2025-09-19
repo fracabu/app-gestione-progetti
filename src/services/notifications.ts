@@ -232,7 +232,7 @@ Rispondi SOLO con il JSON valido.`;
   }
 
   private async callGeminiForInsights(prompt: string): Promise<DailyInsight> {
-    const apiKey = localStorage.getItem('gemini_api_key');
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY || localStorage.getItem('gemini_api_key');
     if (!apiKey) {
       throw new Error('API Key Gemini non configurata');
     }
@@ -389,7 +389,7 @@ Rispondi SOLO con il JSON valido.`;
   }
 
   private isGeminiConfigured(): boolean {
-    return !!localStorage.getItem('gemini_api_key');
+    return !!(import.meta.env.VITE_GEMINI_API_KEY || localStorage.getItem('gemini_api_key'));
   }
 
   addNotification(notification: Notification) {

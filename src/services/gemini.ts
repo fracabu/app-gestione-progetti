@@ -24,8 +24,8 @@ class GeminiService {
   private apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
 
   constructor() {
-    // API key should be set by user in settings
-    this.apiKey = localStorage.getItem('gemini_api_key');
+    // Try to get API key from environment variables first, then localStorage
+    this.apiKey = import.meta.env.VITE_GEMINI_API_KEY || localStorage.getItem('gemini_api_key');
   }
 
   setApiKey(apiKey: string) {
