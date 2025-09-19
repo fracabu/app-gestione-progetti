@@ -17,12 +17,12 @@
 
 #### Firebase (Obbligatorio)
 ```
-VITE_FIREBASE_API_KEY=AIzaSyDOw5QcEYk4lCemHDcD3z7M09cf_duOUKs
-VITE_FIREBASE_AUTH_DOMAIN=app-gestione-progetti.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=app-gestione-progetti
-VITE_FIREBASE_STORAGE_BUCKET=app-gestione-progetti.firebasestorage.app
-VITE_FIREBASE_MESSAGING_SENDER_ID=1059049327829
-VITE_FIREBASE_APP_ID=1:1059049327829:web:b9dc932d434fe37a4c665c
+VITE_FIREBASE_API_KEY=your_firebase_api_key_here
+VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your-project-id
+VITE_FIREBASE_STORAGE_BUCKET=your-project.firebasestorage.app
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+VITE_FIREBASE_APP_ID=your_app_id
 ```
 
 #### Gemini AI (Opzionale)
