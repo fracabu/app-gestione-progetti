@@ -122,6 +122,4 @@ npm run type-check
 
 ---
 
-🎉 **Il tuo progetto è ora live su Vercel!**
-
 URL di esempio: `https://app-gestione-progetti.vercel.app`
