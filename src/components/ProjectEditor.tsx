@@ -158,7 +158,7 @@ const ProjectEditor = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col min-h-0">
+    <div className="flex-1 flex flex-col mobile-flex-container h-full">
       {/* Header */}
       <div className="px-4 md:px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -194,7 +194,7 @@ const ProjectEditor = () => {
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-4 md:p-6 min-h-0">
+      <div className="flex-1 overflow-y-auto webkit-overflow-scrolling-touch mobile-flex-content p-4 md:p-6 pb-16 lg:pb-6">
         <div className="max-w-4xl mx-auto space-y-6 md:space-y-8">
           {/* Basic Information */}
           <div className="bg-white dark:bg-gray-800 rounded-lg p-4 md:p-6 border border-gray-200 dark:border-gray-700">
@@ -460,20 +460,20 @@ const ProjectEditor = () => {
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Project Notes</h2>
             <div className="space-y-4">
-              <div className="flex space-x-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <input
                   type="text"
                   value={newNote}
                   onChange={(e) => setNewNote(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && addNote()}
                   className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  placeholder="Add a note..."
+                  placeholder="Aggiungi una nota..."
                 />
                 <button
                   onClick={addNote}
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 dark:bg-blue-500 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
+                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 dark:bg-blue-500 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors whitespace-nowrap"
                 >
-                  Add
+                  Aggiungi
                 </button>
               </div>
               <div className="space-y-2">

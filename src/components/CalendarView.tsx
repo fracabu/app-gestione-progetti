@@ -105,7 +105,7 @@ const CalendarView = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col min-h-0">
+    <div className="flex-1 flex flex-col mobile-flex-container h-full">
       {/* Header */}
       <div className="px-4 md:px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
         <div className="flex items-center justify-between">
@@ -148,7 +148,7 @@ const CalendarView = () => {
       </div>
 
       {/* Calendar Grid */}
-      <div className="flex-1 overflow-auto p-4 md:p-6">
+      <div className="flex-1 overflow-auto webkit-overflow-scrolling-touch mobile-flex-content p-4 md:p-6 pb-16 lg:pb-6">
         <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
           {/* Days of week header */}
           <div className="grid grid-cols-7 bg-gray-50 dark:bg-gray-700">
@@ -169,7 +169,7 @@ const CalendarView = () => {
               return (
                 <div
                   key={index}
-                  className={`min-h-24 md:min-h-32 p-2 border-r border-b border-gray-200 dark:border-gray-600 ${
+                  className={`min-h-32 md:min-h-40 lg:min-h-48 p-2 md:p-3 border-r border-b border-gray-200 dark:border-gray-600 ${
                     isCurrentMonthDay
                       ? 'bg-white dark:bg-gray-800'
                       : 'bg-gray-50 dark:bg-gray-700/50'
@@ -186,20 +186,22 @@ const CalendarView = () => {
                   </div>
 
                   {dayProjects.length > 0 && (
-                    <div className="space-y-1">
-                      {dayProjects.slice(0, 3).map((project) => (
+                    <div className="space-y-1 overflow-y-auto max-h-28 md:max-h-32 lg:max-h-36">
+                      {dayProjects.slice(0, 5).map((project) => (
                         <button
                           key={project.id}
                           onClick={() => handleProjectClick(project.id)}
-                          className={`w-full text-left p-1 rounded text-xs font-medium truncate hover:scale-105 transition-transform ${getStatusColor(project.status)}`}
+                          className={`w-full text-left p-1.5 md:p-2 rounded text-xs md:text-sm font-medium hover:scale-105 transition-transform leading-tight ${getStatusColor(project.status)}`}
                           title={`${project.name} - ${getStatusLabel(project.status)}`}
                         >
-                          {project.name}
+                          <div className="line-clamp-2 break-words">
+                            {project.name}
+                          </div>
                         </button>
                       ))}
-                      {dayProjects.length > 3 && (
-                        <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-                          +{dayProjects.length - 3} altri
+                      {dayProjects.length > 5 && (
+                        <div className="text-xs text-gray-500 dark:text-gray-400 font-medium px-1">
+                          +{dayProjects.length - 5} altri progetti
                         </div>
                       )}
                     </div>

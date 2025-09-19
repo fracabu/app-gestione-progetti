@@ -46,8 +46,8 @@ const TopNavigation = () => {
             <span className="hidden sm:inline">Nuovo Task</span>
           </button>
 
-          {/* View Toggle */}
-          <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+          {/* View Toggle - Hidden on mobile */}
+          <div className="hidden md:flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
             <button
               onClick={() => setViewMode('list')}
               className={`p-2 rounded transition-colors ${
