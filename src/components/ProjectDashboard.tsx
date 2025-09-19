@@ -32,6 +32,15 @@ const ProjectDashboard = () => {
     setLocalProjects(projects);
   }, [projects]);
 
+  // Cleanup auto-scroll interval on unmount
+  useEffect(() => {
+    return () => {
+      if (autoScrollInterval) {
+        clearInterval(autoScrollInterval);
+      }
+    };
+  }, [autoScrollInterval]);
+
   const filteredProjects = localProjects.filter(project => {
     const matchesSearch = project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          project.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -95,14 +104,75 @@ const ProjectDashboard = () => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
     setDraggedOverIndex(index);
+
+    // Auto-scroll functionality
+    const scrollContainer = document.querySelector('.mobile-flex-content') as HTMLElement;
+    if (!scrollContainer) return;
+
+    const containerRect = scrollContainer.getBoundingClientRect();
+    const scrollThreshold = 60; // pixels from edge to trigger scroll
+    const scrollSpeed = 10; // pixels per scroll step
+
+    const mouseY = e.clientY;
+    const topEdge = containerRect.top;
+    const bottomEdge = containerRect.bottom;
+
+    // Clear existing interval if any
+    if (autoScrollInterval) {
+      clearInterval(autoScrollInterval);
+      setAutoScrollInterval(null);
+    }
+
+    // Check if mouse is near top edge
+    if (mouseY - topEdge < scrollThreshold && scrollContainer.scrollTop > 0) {
+      const interval = setInterval(() => {
+        const newScrollTop = scrollContainer.scrollTop - scrollSpeed;
+        if (newScrollTop <= 0) {
+          scrollContainer.scrollTop = 0;
+          clearInterval(interval);
+          setAutoScrollInterval(null);
+        } else {
+          scrollContainer.scrollTop = newScrollTop;
+        }
+      }, 16); // ~60fps
+      setAutoScrollInterval(interval);
+    }
+    // Check if mouse is near bottom edge
+    else if (bottomEdge - mouseY < scrollThreshold &&
+             scrollContainer.scrollTop < scrollContainer.scrollHeight - scrollContainer.clientHeight) {
+      const interval = setInterval(() => {
+        const maxScroll = scrollContainer.scrollHeight - scrollContainer.clientHeight;
+        const newScrollTop = scrollContainer.scrollTop + scrollSpeed;
+        if (newScrollTop >= maxScroll) {
+          scrollContainer.scrollTop = maxScroll;
+          clearInterval(interval);
+          setAutoScrollInterval(null);
+        } else {
+          scrollContainer.scrollTop = newScrollTop;
+        }
+      }, 16); // ~60fps
+      setAutoScrollInterval(interval);
+    }
   };
 
   const handleDragLeave = () => {
     setDraggedOverIndex(null);
+
+    // Stop auto-scroll when leaving drag area
+    if (autoScrollInterval) {
+      clearInterval(autoScrollInterval);
+      setAutoScrollInterval(null);
+    }
   };
 
   const handleDrop = (e: React.DragEvent, dropIndex: number) => {
     e.preventDefault();
+
+    // Stop auto-scroll immediately on drop
+    if (autoScrollInterval) {
+      clearInterval(autoScrollInterval);
+      setAutoScrollInterval(null);
+    }
 
     if (!draggedProject) return;
 
