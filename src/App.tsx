@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { NavigationProvider, useNavigation } from './contexts/NavigationContext';
+import { useProjects } from './hooks/useProjects';
 import Sidebar from './components/Sidebar';
 import TopNavigation from './components/TopNavigation';
 import ProjectDashboard from './components/ProjectDashboard';
@@ -10,7 +11,19 @@ import ProjectEditor from './components/ProjectEditor';
 import CalendarView from './components/CalendarView';
 
 const AppContent = () => {
-  const { activeSection } = useNavigation();
+  const { activeSection, editingProjectId, setActiveSection } = useNavigation();
+  const { projects } = useProjects();
+
+  // Validate project-editor state on mount and when projects change
+  useEffect(() => {
+    if (activeSection === 'project-editor' && editingProjectId) {
+      const projectExists = projects.some(p => p.id === editingProjectId);
+      if (!projectExists) {
+        // Project doesn't exist anymore, redirect to projects
+        setActiveSection('projects');
+      }
+    }
+  }, [activeSection, editingProjectId, projects, setActiveSection]);
 
   const renderContent = () => {
     switch (activeSection) {

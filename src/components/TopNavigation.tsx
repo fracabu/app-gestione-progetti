@@ -1,9 +1,8 @@
 import React from 'react';
-import { 
-  Search, 
-  Filter, 
-  Plus, 
-  Bell, 
+import {
+  Search,
+  Filter,
+  Bell,
   ChevronDown,
   MoreHorizontal,
   Grid3X3,
@@ -40,12 +39,6 @@ const TopNavigation = () => {
 
         {/* Right Section */}
         <div className="flex items-center space-x-2 md:space-x-4">
-          {/* New Task Button */}
-          <button className="flex items-center space-x-1 md:space-x-2 px-2 md:px-4 py-2 text-sm font-medium text-white bg-blue-600 dark:bg-blue-500 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors">
-            <Plus className="h-4 w-4" />
-            <span className="hidden sm:inline">Nuovo Task</span>
-          </button>
-
           {/* View Toggle - Hidden on mobile */}
           <div className="hidden md:flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
             <button
